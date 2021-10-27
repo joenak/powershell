@@ -1,0 +1,4 @@
+$basePath = "C:\temp\backups\"
+
+$folders = Get-ChildItem -Path $basePath *.bak -Recurse | Where-Objecct {$_.LastWriteTime -lt (Get-Date).AddDays(-900)} | Remove-Item
+$folders = Get-ChildItem -Path $basePath *.trn -Recurse | Where-Objecct {$_.LastWriteTime -lt (Get-Date).AddDays(-900)} | Remove-Item
