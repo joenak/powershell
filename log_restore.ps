@@ -1,0 +1,35 @@
+$basePath = "FileSystem::\\FileServer\backups\"
+$databaseName = "Database1"
+$serverInstance = "DBServer1"
+
+$appliedPath = $basePath + "applied"
+$errorPath = $basePath + "error"
+
+if (!(Test-Path -Path $appliedPath))
+{
+  Write-Output("...creating applied folder")
+  New-Item -ItemType directory -Path $appliedPath
+}
+
+if (!(Test-Path -Path $errorPath))
+{
+  Write-Output("...creating error folder")
+  New-Item -ItemType directory -Path $errorPath
+}
+
+$finalFolders = Get-ChildItem -Path $basePath | Where-Object name -Like "*.trn" | Sort CreationTime
+
+foreach ($final in $finalFolders)
+{
+  try
+  {
+    Restore-SqlDatabase -ServerInstance $serverInstance -Database $databaseName -RestoreAction Database -NoRecovery -BackupFile $final.FullName
+    Write-Output("Log restored for " + $final.FullName + " - succeeded.")
+    Move-Item -path $final.FullName -Destination $appliedPath
+  }
+  catch
+  {
+    Move-Item -path $final.FullName -Destination $errorPath
+    Write-Output($_.Exception.GetBaseException().Message)
+  }
+}
